@@ -25,7 +25,7 @@ myLayout = tiled ||| Mirror tiled ||| noBorders Full ||| Grid
 
 myManageHook = composeAll . concat $ 
     [ [ resource =? "Do" --> doIgnore ]
-    , [(className =? "Shiretoko" <&&> resource =? "Download") --> doFloat ]
+    , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
     ]
 
 myKeys = concat [
