@@ -3,3 +3,5 @@
 xmonad-i386-linux
 *.hi
 *.errors
+.\#*
+\#*\#
