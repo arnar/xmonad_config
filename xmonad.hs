@@ -34,6 +34,7 @@ myLayout = tiled ||| Mirror tiled ||| noBorders Full ||| Grid ||| im ||| gimp
 
 myManageHook = composeAll . concat $ 
     [ [ resource =? "Do" --> doIgnore ]
+    , [ resource =? "spotify.exe" --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Extension") --> doFloat ]
     ]
