@@ -15,9 +15,14 @@ import XMonad.Util.Loggers
 --import XMonad.Actions.Commands
 import XMonad.Layout.NoBorders
 import Data.List
+import Data.Maybe
 import Data.Ratio ((%))
+import System
 import System.IO
 import Control.Monad
+import qualified XMonad.StackSet as S
+import XMonad.Util.NamedWindows (getName)
+
 
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
@@ -47,7 +52,7 @@ myKeys = concat [
           , ("M-S-<Right>", shiftToNext )
           , ("M-S-g",       gotoMenu )
           , ("M-S-b",       bringMenu )
-          , ("M-c",         spawn "/bin/bash -l -c '~/bin/caps_toggle'" )
+          --, ("M-c",         spawn "/bin/bash -l -c '~/bin/caps_toggle'" )
           --, ("M-C-k",       defaultCommands >>= runCommand )
           ],
           [("M-C-" ++ i, windows $ swapWithCurrent i) | i <- myWorkspaces]
@@ -76,12 +81,22 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                            "Grid"                 -> " ^i(" ++ pixmaps ++ "layout-grid.xbm) "
                                            "IM Grid"              -> " ^i(" ++ pixmaps ++ "layout-im.xbm) "
                                            "IM ReflectX IM Full"  -> " ^i(" ++ pixmaps ++ "layout-gimp.xbm) "
-                                           _                 -> pad x
+                                           _                      -> pad x
                                  )
                   , ppTitle    = dzenEscape . wrap "[ " " ]"
                   , ppExtras   = [(liftM . liftM $ pad) (logCmd "/data/home/arnar/bin/caps_check")]
                   , ppOrder    = \[a,b,c,d] -> [a,b,d,c]
                   }
+
+extraLogHook :: X ()
+extraLogHook = do
+  ws <- gets windowset
+  case S.peek ws of
+    Nothing -> return ()
+    Just w  -> do cls <- withDisplay $ \d -> fmap (fromMaybe "") $ getStringProperty d w "WM_CLASS"
+                  if (takeWhile (/= '\NUL') cls) == "emacs-snapshot-gtk"
+                     then (io $ system "~/bin/caps_control") >> return ()
+                     else (io $ system  "~/bin/caps_escape") >> return ()
 
 main = do
   dzen <- spawnPipe ("dzen2 -x '230' -y '4' -h '15' -w '1200' -ta 'l' "
@@ -93,6 +108,6 @@ main = do
         , workspaces = myWorkspaces
         , layoutHook = desktopLayoutModifiers myLayout
         , manageHook = manageHook gnomeConfig <+> myManageHook
-        , logHook = ewmhDesktopsLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
+        , logHook = extraLogHook >> ewmhDesktopsLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
         }
         `additionalKeysP` myKeys
