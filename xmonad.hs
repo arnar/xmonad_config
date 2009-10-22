@@ -21,8 +21,6 @@ import System
 import System.IO
 import Control.Monad
 import qualified XMonad.StackSet as S
-import XMonad.Util.NamedWindows (getName)
-
 
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
