@@ -17,7 +17,6 @@ import XMonad.Layout.NoBorders
 import Data.List
 import Data.Maybe
 import Data.Ratio ((%))
-import System
 import System.IO
 import Control.Monad
 import qualified XMonad.StackSet as S
@@ -82,19 +81,19 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                            _                      -> pad x
                                  )
                   , ppTitle    = dzenEscape . wrap "[ " " ]"
-                  , ppExtras   = [(liftM . liftM $ pad) (logCmd "/data/home/arnar/bin/caps_check")]
+                  , ppExtras   = [(liftM . liftM $ pad) capsControl]
                   , ppOrder    = \[a,b,c,d] -> [a,b,d,c]
                   }
 
-extraLogHook :: X ()
-extraLogHook = do
+capsControl :: X (Maybe String)
+capsControl = do
   ws <- gets windowset
   case S.peek ws of
-    Nothing -> return ()
+    Nothing -> return Nothing
     Just w  -> do cls <- withDisplay $ \d -> fmap (fromMaybe "") $ getStringProperty d w "WM_CLASS"
-                  if (takeWhile (/= '\NUL') cls) == "emacs-snapshot-gtk"
-                     then (spawn "~/bin/caps_control") >> return ()
-                     else (spawn  "~/bin/caps_escape") >> return ()
+                  if (take 14 cls) == "emacs-snapshot"
+                     then (spawn "/data/home/arnar/bin/caps_control") >> (return $ Just "C")
+                     else (spawn "/data/home/arnar/bin/caps_escape")  >> (return $ Just "E")
 
 main = do
   dzen <- spawnPipe ("dzen2 -x '230' -y '4' -h '15' -w '1200' -ta 'l' "
@@ -106,6 +105,6 @@ main = do
         , workspaces = myWorkspaces
         , layoutHook = desktopLayoutModifiers myLayout
         , manageHook = manageHook gnomeConfig <+> myManageHook
-        , logHook = extraLogHook >> ewmhDesktopsLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
+        , logHook = dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
         }
         `additionalKeysP` myKeys
