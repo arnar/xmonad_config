@@ -93,8 +93,8 @@ extraLogHook = do
     Nothing -> return ()
     Just w  -> do cls <- withDisplay $ \d -> fmap (fromMaybe "") $ getStringProperty d w "WM_CLASS"
                   if (takeWhile (/= '\NUL') cls) == "emacs-snapshot-gtk"
-                     then (io $ system "~/bin/caps_control") >> return ()
-                     else (io $ system  "~/bin/caps_escape") >> return ()
+                     then (spawn "~/bin/caps_control") >> return ()
+                     else (spawn  "~/bin/caps_escape") >> return ()
 
 main = do
   dzen <- spawnPipe ("dzen2 -x '230' -y '4' -h '15' -w '1200' -ta 'l' "
