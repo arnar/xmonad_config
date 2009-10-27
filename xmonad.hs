@@ -82,14 +82,16 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                  )
                   , ppTitle    = dzenEscape . wrap "[ " " ]"
                   , ppExtras   = [(liftM . liftM $ pad) capsControl]
-                  , ppOrder    = \[a,b,c,d] -> [a,b,d,c]
+                  , ppOrder    = \x -> case x of 
+                                         [a,b,c,d] -> [a,b,d,c]
+                                         otherwise -> ["bzzt"]
                   }
 
 capsControl :: X (Maybe String)
 capsControl = do
   ws <- gets windowset
   case S.peek ws of
-    Nothing -> return Nothing
+    Nothing -> return $ Just ""
     Just w  -> do cls <- withDisplay $ \d -> fmap (fromMaybe "") $ getStringProperty d w "WM_CLASS"
                   if (take 14 cls) == "emacs-snapshot"
                      then (spawn "/data/home/arnar/bin/caps_control") >> (return $ Just "C")
