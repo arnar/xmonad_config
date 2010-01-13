@@ -37,6 +37,7 @@ myLayout = tiled ||| Mirror tiled ||| noBorders Full ||| Grid ||| im ||| gimp
 myManageHook = composeAll . concat $ 
     [ [ resource =? "Do" --> doIgnore ]
     , [ resource =? "spotify.exe" --> doFloat ]
+    , [ resource =? "hamster-applet" --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Extension") --> doFloat ]
     ]
@@ -98,7 +99,7 @@ capsControl = do
                      else (spawn "/data/home/arnar/bin/caps_escape")  >> (return $ Just "E")
 
 main = do
-  dzen <- spawnPipe ("dzen2 -x '230' -y '4' -h '15' -w '1200' -ta 'l' "
+  dzen <- spawnPipe ("dzen2 -x '230' -y '4' -h '15' -w '1100' -ta 'l' "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
 
