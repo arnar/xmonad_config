@@ -94,7 +94,7 @@ capsControl = do
   case S.peek ws of
     Nothing -> return $ Just ""
     Just w  -> do cls <- withDisplay $ \d -> fmap (fromMaybe "") $ getStringProperty d w "WM_CLASS"
-                  if (take 14 cls) == "emacs-snapshot"
+                  if (take 5 cls) == "emacs"
                      then (spawn "/data/home/arnar/bin/caps_control") >> (return $ Just "C")
                      else (spawn "/data/home/arnar/bin/caps_escape")  >> (return $ Just "E")
 
