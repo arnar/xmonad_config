@@ -10,6 +10,8 @@ import XMonad.Layout.IM
 import XMonad.Layout.Reflect
 import XMonad.Util.Run
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Hooks.SetWMName
+import XMonad.Hooks.FadeInactive
 import XMonad.Actions.WindowBringer
 import XMonad.Util.Loggers
 --import XMonad.Actions.Commands
@@ -23,7 +25,7 @@ import qualified XMonad.StackSet as S
 
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
-myLayout = tiled ||| Mirror tiled ||| noBorders Full ||| Grid ||| im ||| gimp
+myLayout = tiled ||| Mirror tiled ||| noBorders Full ||| Grid ||| noBorders im ||| gimp
   where
     tiled  = Tall nmaster delta ratio
     nmaster = 1
@@ -98,8 +100,11 @@ capsControl = do
                      then (spawn "/data/home/arnar/bin/caps_control") >> (return $ Just "C")
                      else (spawn "/data/home/arnar/bin/caps_escape")  >> (return $ Just "E")
 
+myLogHook :: X ()
+myLogHook = fadeInactiveLogHook 0xdddddddd
+
 main = do
-  dzen <- spawnPipe ("dzen2 -x '230' -y '4' -h '15' -w '1100' -ta 'l' "
+  dzen <- spawnPipe ("dzen2 -dock -x '230' -y '4' -h '15' -w '1100' -ta 'l' "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
 
@@ -108,6 +113,7 @@ main = do
         , workspaces = myWorkspaces
         , layoutHook = desktopLayoutModifiers myLayout
         , manageHook = manageHook gnomeConfig <+> myManageHook
-        , logHook = dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
+        , logHook = myLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
+        , startupHook = startupHook gnomeConfig >> setWMName "LG3D"
         }
         `additionalKeysP` myKeys
