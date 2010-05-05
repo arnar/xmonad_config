@@ -25,7 +25,12 @@ import qualified XMonad.StackSet as S
 
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
-myLayout = tiled ||| Mirror tiled ||| noBorders Full ||| Grid ||| noBorders im ||| gimp
+myLayout = smartBorders tiled
+       ||| (smartBorders $ Mirror tiled)
+       ||| noBorders Full
+       ||| smartBorders Grid
+       ||| im
+       ||| gimp
   where
     tiled  = Tall nmaster delta ratio
     nmaster = 1
@@ -37,7 +42,7 @@ myLayout = tiled ||| Mirror tiled ||| noBorders Full ||| Grid ||| noBorders im |
            withIM (0.15) (Role "gimp-dock") Full
 
 myManageHook = composeAll . concat $ 
-    [ [ resource =? "Do" --> doIgnore ]
+    [ [ resource =? "/usr/lib/gnome-do/Do.exe" --> doIgnore ]
     , [ resource =? "spotify.exe" --> doFloat ]
     , [ resource =? "hamster-applet" --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
