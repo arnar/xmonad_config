@@ -42,7 +42,7 @@ myLayout = smartBorders tiled
            withIM (0.15) (Role "gimp-dock") Full
 
 myManageHook = composeAll . concat $ 
-    [ [ resource =? "/usr/lib/gnome-do/Do.exe" --> doIgnore ]
+    [ [ resource =? "Do" --> doIgnore ]
     , [ resource =? "spotify.exe" --> doFloat ]
     , [ resource =? "hamster-applet" --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
