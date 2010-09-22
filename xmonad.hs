@@ -88,7 +88,7 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                            "IM ReflectX IM Full"  -> " ^i(" ++ pixmaps ++ "layout-gimp.xbm) "
                                            _                      -> pad x
                                  )
-                  , ppTitle    = dzenEscape . wrap "[ " " ]"
+                  , ppTitle    = dzenEscape . ("∷ " ++)
                   , ppExtras   = map (liftM . liftM $ pad) [capsControl, logCmd "~/bin/tstatus"]
                   , ppOrder    = \x -> case x of 
                                          [a,b,c,d,e] -> [a,b,d,e,c]
