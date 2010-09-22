@@ -89,9 +89,9 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                            _                      -> pad x
                                  )
                   , ppTitle    = dzenEscape . wrap "[ " " ]"
-                  , ppExtras   = [(liftM . liftM $ pad) capsControl]
+                  , ppExtras   = map (liftM . liftM $ pad) [capsControl, logCmd "~/bin/tstatus"]
                   , ppOrder    = \x -> case x of 
-                                         [a,b,c,d] -> [a,b,d,c]
+                                         [a,b,c,d,e] -> [a,b,d,e,c]
                                          otherwise -> ["bzzt"]
                   }
 
