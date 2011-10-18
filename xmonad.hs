@@ -44,7 +44,10 @@ myLayout = smartBorders tiled
            withIM (0.15) (Role "gimp-dock") Full
 
 myManageHook = composeAll . concat $ 
-    [ [ resource =? "Do" --> doIgnore ]
+    [ [ title =? "Do" --> doIgnore ]
+    , [ resource =? "Do" --> doFloat ]
+    , [ className =? "Unity-2d-panel" --> doIgnore ]
+    , [ className =? "Unity-2d-launcher" --> doIgnore ]
     , [ resource =? "spotify.exe" --> doFloat ]
     , [ resource =? "hamster-applet" --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
@@ -59,6 +62,7 @@ myKeys = concat [
           , ("M-S-<Right>", shiftToNext )
           , ("M-S-g",       gotoMenu )
           , ("M-S-b",       bringMenu )
+          , ("M-p",         spawn "gnome-do" )
           --, ("M-c",         spawn "/bin/bash -l -c '~/bin/caps_toggle'" )
           --, ("M-C-k",       defaultCommands >>= runCommand )
           ],
