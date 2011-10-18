@@ -8,6 +8,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Layout.Grid
 import XMonad.Layout.IM
 import XMonad.Layout.Reflect
+import XMonad.Layout.TwoPane
 import XMonad.Util.Run
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.SetWMName
@@ -28,6 +29,7 @@ myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 myLayout = smartBorders tiled
        ||| (smartBorders $ Mirror tiled)
        ||| noBorders Full
+       ||| smartBorders (TwoPane (3/100) (3/5))
        ||| smartBorders Grid
        ||| im
        ||| gimp
@@ -83,6 +85,7 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                            "Tall"                 -> " ^i(" ++ pixmaps ++ "layout-tall.xbm) "
                                            "Mirror Tall"          -> " ^i(" ++ pixmaps ++ "layout-mtall.xbm) "
                                            "Full"                 -> " ^i(" ++ pixmaps ++ "layout-full.xbm) "
+                                           "TwoPane"              -> " ^i(" ++ pixmaps ++ "layout-twopane.xbm) "
                                            "Grid"                 -> " ^i(" ++ pixmaps ++ "layout-grid.xbm) "
                                            "IM Grid"              -> " ^i(" ++ pixmaps ++ "layout-im.xbm) "
                                            "IM ReflectX IM Full"  -> " ^i(" ++ pixmaps ++ "layout-gimp.xbm) "
