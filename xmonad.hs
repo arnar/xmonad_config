@@ -46,8 +46,7 @@ myLayout = smartBorders tiled
 myManageHook = composeAll . concat $ 
     [ [ title =? "Do" --> doIgnore ]
     , [ resource =? "Do" --> doFloat ]
-    , [ className =? "Unity-2d-panel" --> doIgnore ]
-    , [ className =? "Unity-2d-launcher" --> doIgnore ]
+    , [ resource =? "unity-2d-panel" --> doIgnore ]
     , [ resource =? "spotify.exe" --> doFloat ]
     , [ resource =? "hamster-applet" --> doFloat ]
     , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
@@ -73,9 +72,10 @@ myKeys = concat [
 -- LogHook prettyprinter for dzen
 
 pixmaps = "/data/home/arnar/.xmonad/"
-light_gray = "#c7c8c6"
-dark_gray  = "#434541"
-font = "xft:Sans:size=9:weight=regular:hinting=true:hintstyle=hintslight:antialias=true:rgba=rgb:lcdfilter=lcdligh"
+light_gray = "#cccccc" -- #c7c8c6"
+dark_gray  = "#000000"  -- very very dark, was "#434541" before
+-- font = "xft:Sans:size=9:weight=regular:hinting=true:hintstyle=hintslight:antialias=true:rgba=rgb:lcdfilter=lcdligh"
+font = "Sans-9"
 
 myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                   , ppVisible  = dzenColor "black" light_gray . pad
@@ -116,7 +116,7 @@ myLogHook :: X ()
 myLogHook = fadeInactiveLogHook 0xdddddddd
 
 main = do
-  dzen <- spawnPipe ("dzen2 -dock -x '230' -y '4' -h '15' -w '1100' -ta 'l' "
+  dzen <- spawnPipe ("dzen2 -dock -x '8' -y '4' -h '15' -w '1100' -ta 'l' "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
 
@@ -127,5 +127,7 @@ main = do
         , manageHook = manageHook gnomeConfig <+> myManageHook
         , logHook = myLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
         , startupHook = startupHook gnomeConfig >> setWMName "LG3D"
+        , normalBorderColor = "#505050"
+        , focusedBorderColor = "#660000"
         }
         `additionalKeysP` myKeys
