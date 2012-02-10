@@ -9,6 +9,8 @@ import XMonad.Layout.Grid
 import XMonad.Layout.IM
 import XMonad.Layout.Reflect
 import XMonad.Layout.TwoPane
+import qualified XMonad.Layout.Groups as G
+import XMonad.Layout.Groups.Helpers
 import XMonad.Util.Run
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.SetWMName
@@ -17,6 +19,7 @@ import XMonad.Actions.WindowBringer
 import XMonad.Util.Loggers
 --import XMonad.Actions.Commands
 import XMonad.Layout.NoBorders
+import XMonad.Util.Scratchpad
 import Data.List
 import Data.Maybe
 import Data.Ratio ((%))
@@ -27,9 +30,9 @@ import qualified XMonad.StackSet as S
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
 myLayout = smartBorders tiled
-       ||| (smartBorders $ Mirror tiled)
        ||| noBorders Full
-       ||| smartBorders (TwoPane (3/100) (3/5))
+       ||| smartBorders (G.group Grid Full) -- Good for editor fullscreen + bunch of terminals
+       ||| smartBorders (TwoPane (3/100) (3/5))      -- Good for TeXing
        ||| smartBorders Grid
        ||| im
        ||| gimp
@@ -43,14 +46,15 @@ myLayout = smartBorders tiled
            reflectHoriz $
            withIM (0.15) (Role "gimp-dock") Full
 
-myManageHook = composeAll . concat $ 
-    [ [ title =? "Do" --> doIgnore ]
-    , [ resource =? "Do" --> doFloat ]
-    , [ resource =? "unity-2d-panel" --> doIgnore ]
-    , [ resource =? "spotify.exe" --> doFloat ]
-    , [ resource =? "hamster-applet" --> doFloat ]
-    , [(className =? "Firefox" <&&> resource =? "Download") --> doFloat ]
-    , [(className =? "Firefox" <&&> resource =? "Extension") --> doFloat ]
+myManageHook = composeAll $ 
+    [ title =? "Do" --> doIgnore
+    , resource =? "Do" --> doFloat
+    , resource =? "unity-2d-panel" --> doIgnore
+    , resource =? "spotify.exe" --> doFloat
+    , resource =? "hamster-applet" --> doFloat
+    , (className =? "Firefox" <&&> resource =? "Download") --> doFloat
+    , (className =? "Firefox" <&&> resource =? "Extension") --> doFloat
+    , scratchpadManageHookDefault
     ]
 
 myKeys = concat [
@@ -62,6 +66,11 @@ myKeys = concat [
           , ("M-S-g",       gotoMenu )
           , ("M-S-b",       bringMenu )
           , ("M-p",         spawn "gnome-do" )
+          , ("M-u",         scratchpadSpawnAction myConfig )
+          , ("M-S-C-j",     moveToGroupDown True)
+          , ("M-S-C-k",     moveToGroupUp True)
+          , ("M-S-C-h",     moveToNewGroupDown)
+          , ("M-S-C-l",     moveToNewGroupUp)
           --, ("M-c",         spawn "/bin/bash -l -c '~/bin/caps_toggle'" )
           --, ("M-C-k",       defaultCommands >>= runCommand )
           ],
@@ -103,7 +112,9 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                   }
 
 capsControl :: X (Maybe String)
-capsControl = do
+capsControl = return $ Just "E"
+
+capsControl' = do
   ws <- gets windowset
   case S.peek ws of
     Nothing -> return $ Just ""
@@ -115,19 +126,20 @@ capsControl = do
 myLogHook :: X ()
 myLogHook = fadeInactiveLogHook 0xdddddddd
 
+myConfig = gnomeConfig 
+           { modMask = mod4Mask
+           , workspaces = myWorkspaces
+           , layoutHook = desktopLayoutModifiers myLayout
+           , manageHook = manageHook gnomeConfig <+> myManageHook
+           , startupHook = startupHook gnomeConfig >> setWMName "LG3D"
+           , normalBorderColor = "#505050"
+           , focusedBorderColor = "#660000"
+           } `additionalKeysP` myKeys
+
 main = do
   dzen <- spawnPipe ("dzen2 -dock -x '8' -y '4' -h '15' -w '1100' -ta 'l' "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
-
-  xmonad $ gnomeConfig { 
-          modMask = mod4Mask
-        , workspaces = myWorkspaces
-        , layoutHook = desktopLayoutModifiers myLayout
-        , manageHook = manageHook gnomeConfig <+> myManageHook
-        , logHook = myLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
-        , startupHook = startupHook gnomeConfig >> setWMName "LG3D"
-        , normalBorderColor = "#505050"
-        , focusedBorderColor = "#660000"
-        }
-        `additionalKeysP` myKeys
+  xmonad $ myConfig {
+               logHook = myLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
+             }
