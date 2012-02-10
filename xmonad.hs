@@ -31,8 +31,8 @@ myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
 myLayout = smartBorders tiled
        ||| noBorders Full
-       ||| smartBorders (G.group Grid Full) -- Good for editor fullscreen + bunch of terminals
        ||| smartBorders (TwoPane (3/100) (3/5))      -- Good for TeXing
+       ||| smartBorders (G.group Grid Full) -- Good for editor fullscreen + bunch of terminals
        ||| smartBorders Grid
        ||| im
        ||| gimp
@@ -102,6 +102,7 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                            "Grid"                 -> " ^i(" ++ pixmaps ++ "layout-grid.xbm) "
                                            "IM Grid"              -> " ^i(" ++ pixmaps ++ "layout-im.xbm) "
                                            "IM ReflectX IM Full"  -> " ^i(" ++ pixmaps ++ "layout-gimp.xbm) "
+                                           "Grid by Full"         -> " ^i(" ++ pixmaps ++ "layout-gridbyfull.xbm) "
                                            _                      -> pad x
                                  )
                   , ppTitle    = dzenEscape . ("∷ " ++)
