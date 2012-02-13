@@ -5,7 +5,7 @@ import XMonad.Util.EZConfig
 import XMonad.Actions.CycleWS
 import XMonad.Actions.SwapWorkspaces
 import XMonad.Hooks.DynamicLog
-import XMonad.Layout.Grid
+import XMonad.Layout.GridVariants
 import XMonad.Layout.IM
 import XMonad.Layout.Reflect
 import XMonad.Layout.TwoPane
@@ -32,8 +32,8 @@ myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 myLayout = smartBorders tiled
        ||| noBorders Full
        ||| smartBorders (TwoPane (3/100) (3/5))      -- Good for TeXing
-       ||| smartBorders (G.group Grid Full) -- Good for editor fullscreen + bunch of terminals
-       ||| smartBorders Grid
+       ||| smartBorders (G.group (Grid (16/9)) Full) -- Good for editor fullscreen + bunch of terminals
+       ||| smartBorders (Grid (16/9))
        ||| im
        ||| gimp
   where
@@ -41,7 +41,7 @@ myLayout = smartBorders tiled
     nmaster = 1
     ratio = 3/5
     delta = 3/100
-    im = withIM (1%7) (Title "Buddy List") Grid
+    im = withIM (1%7) (Title "Buddy List") (Grid (1/10))
     gimp = withIM (0.11) (Role "gimp-toolbox") $
            reflectHoriz $
            withIM (0.15) (Role "gimp-dock") Full
