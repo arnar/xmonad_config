@@ -1,6 +1,5 @@
 import XMonad
 import XMonad.Config.Desktop
-import XMonad.Config.Gnome
 import XMonad.Util.EZConfig
 import XMonad.Actions.CycleWS
 import XMonad.Actions.SwapWorkspaces
@@ -41,12 +40,12 @@ myLayout = smartBorders tiled
     nmaster = 1
     ratio = 3/5
     delta = 3/100
-    im = withIM (1%7) (Title "Buddy List") (Grid (1/10))
+    im = withIM (1%7) (Title "Buddy List") (Grid (1/2))
     gimp = withIM (0.11) (Role "gimp-toolbox") $
            reflectHoriz $
            withIM (0.15) (Role "gimp-dock") Full
 
-myManageHook = composeAll $ 
+myManageHook = (composeAll
     [ title =? "Do" --> doIgnore
     , resource =? "Do" --> doFloat
     , resource =? "unity-2d-panel" --> doIgnore
@@ -54,8 +53,14 @@ myManageHook = composeAll $
     , resource =? "hamster-applet" --> doFloat
     , (className =? "Firefox" <&&> resource =? "Download") --> doFloat
     , (className =? "Firefox" <&&> resource =? "Extension") --> doFloat
-    , scratchpadManageHookDefault
-    ]
+    ])  <+> manageScratchPad
+
+manageScratchPad = scratchpadManageHook (S.RationalRect l t w h)
+  where
+    h = 0.1
+    w = 1
+    t = 1 - h
+    l = 1 - w
 
 myKeys = concat [
           [ ("M-x f",       spawn "firefox" ) 
@@ -65,14 +70,12 @@ myKeys = concat [
           , ("M-S-<Right>", shiftToNext )
           , ("M-S-g",       gotoMenu )
           , ("M-S-b",       bringMenu )
-          , ("M-p",         spawn "gnome-do" )
+          , ("M-p",         spawn "dmenu_run" )
           , ("M-u",         scratchpadSpawnAction myConfig )
           , ("M-S-C-j",     moveToGroupDown True)
           , ("M-S-C-k",     moveToGroupUp True)
           , ("M-S-C-h",     moveToNewGroupDown)
           , ("M-S-C-l",     moveToNewGroupUp)
-          --, ("M-c",         spawn "/bin/bash -l -c '~/bin/caps_toggle'" )
-          --, ("M-C-k",       defaultCommands >>= runCommand )
           ],
           [("M-C-" ++ i, windows $ swapWithCurrent i) | i <- myWorkspaces]
          ]
@@ -82,9 +85,10 @@ myKeys = concat [
 
 pixmaps = "/data/home/arnar/.xmonad/"
 light_gray = "#cccccc" -- #c7c8c6"
-dark_gray  = "#000000"  -- very very dark, was "#434541" before
+dark_gray  = "#434541"  -- very very dark, was "#434541" before
 -- font = "xft:Sans:size=9:weight=regular:hinting=true:hintstyle=hintslight:antialias=true:rgba=rgb:lcdfilter=lcdligh"
-font = "Sans-9"
+--font = "Ubuntu Mono-10"
+font = "Droid Sans Mono-10"
 
 myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                   , ppVisible  = dzenColor "black" light_gray . pad
@@ -107,9 +111,9 @@ myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                                  )
                   , ppTitle    = dzenEscape . ("∷ " ++)
                   , ppExtras   = map (liftM . liftM $ pad) [capsControl, logCmd "~/bin/tstatus"]
-                  , ppOrder    = \x -> case x of 
-                                         [a,b,c,d,e] -> [a,b,d,e,c]
-                                         otherwise -> ["bzzt"]
+                  {-, ppOrder    = \x -> case x of -}
+                  {-                       [a,b,c,d,e] -> [a,b,d,e,c]-}
+                  {-                       _ -> ["bzzt"]-}
                   }
 
 capsControl :: X (Maybe String)
@@ -120,25 +124,26 @@ capsControl' = do
   case S.peek ws of
     Nothing -> return $ Just ""
     Just w  -> do cls <- withDisplay $ \d -> fmap (fromMaybe "") $ getStringProperty d w "WM_CLASS"
-                  if (take 5 cls) == "emacs"
-                     then (spawn "/data/home/arnar/bin/caps_control") >> (return $ Just "C")
-                     else (spawn "/data/home/arnar/bin/caps_escape")  >> (return $ Just "E")
+                  if "emacs" `isPrefixOf` cls
+                     then spawn "/data/home/arnar/bin/caps_control" >> return (Just "C")
+                     else spawn "/data/home/arnar/bin/caps_escape"  >> return (Just "E")
 
 myLogHook :: X ()
 myLogHook = fadeInactiveLogHook 0xdddddddd
 
-myConfig = gnomeConfig 
+myConfig = desktopConfig 
            { modMask = mod4Mask
            , workspaces = myWorkspaces
            , layoutHook = desktopLayoutModifiers myLayout
-           , manageHook = manageHook gnomeConfig <+> myManageHook
-           , startupHook = startupHook gnomeConfig >> setWMName "LG3D"
+           , manageHook = manageHook desktopConfig <+> myManageHook
+           , startupHook = startupHook desktopConfig >> setWMName "LG3D"
            , normalBorderColor = "#505050"
            , focusedBorderColor = "#660000"
+           , terminal = "urxvt -e 'tmux'"
            } `additionalKeysP` myKeys
 
 main = do
-  dzen <- spawnPipe ("dzen2 -dock -x '8' -y '4' -h '15' -w '1100' -ta 'l' "
+  dzen <- spawnPipe ("dzen2 -dock -x '7' -y '4' -h '15' -w '1100' -ta 'l' "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
   xmonad $ myConfig {
