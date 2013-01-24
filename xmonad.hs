@@ -93,7 +93,7 @@ font = "Droid Sans Mono-10"
 myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
                   , ppVisible  = dzenColor "black" light_gray . pad
                   , ppHidden   = dzenColor "#e6e6e6" dark_gray . pad
-                  , ppHiddenNoWindows = const ""
+                  , ppHiddenNoWindows = dzenColor "#666666" dark_gray . pad
                   , ppUrgent   = dzenColor "red" "yellow"
                   , ppWsSep    = ""
                   , ppSep      = ""

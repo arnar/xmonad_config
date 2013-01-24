@@ -5,3 +5,5 @@ xmonad-i386-linux
 *.errors
 .\#*
 \#*\#
+xmonad-x86_64-linux
+xmonad
