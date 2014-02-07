@@ -40,7 +40,7 @@ myLayout = smartBorders tiled
     nmaster = 1
     ratio = 3/5
     delta = 3/100
-    im = withIM (1%7) (Title "Buddy List") (Grid (1/2))
+    im = withIM (1%7) (Or (Title "Buddy List") (Title "arnarbi - Skype™")) (Grid (1/2))
     gimp = withIM (0.11) (Role "gimp-toolbox") $
            reflectHoriz $
            withIM (0.15) (Role "gimp-dock") Full
@@ -143,7 +143,7 @@ myConfig = desktopConfig
            } `additionalKeysP` myKeys
 
 main = do
-  dzen <- spawnPipe ("dzen2 -dock -x '7' -y '4' -h '15' -w '1100' -ta 'l' "
+  dzen <- spawnPipe ("dzen2 -dock -x '4' -y '3' -h '15' -w '1100' -ta 'l' "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
   xmonad $ myConfig {
