@@ -25,6 +25,7 @@ import Data.Ratio ((%))
 import System.IO
 import Control.Monad
 import qualified XMonad.StackSet as S
+import XMonad.Hooks.Place
 
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
@@ -53,7 +54,13 @@ myManageHook = (composeAll
     , resource =? "hamster-applet" --> doFloat
     , (className =? "Firefox" <&&> resource =? "Download") --> doFloat
     , (className =? "Firefox" <&&> resource =? "Extension") --> doFloat
+    --, (stringProperty "WM_WINDOW_ROLE" =? "pop-up") --> doFloat   -- e.g. the hangouts extension
+    , isHangouts --> placeHook hangoutsPlacement <+> doFloat
     ])  <+> manageScratchPad
+  where
+    isHangouts = appName =? "crx_nckgahadagoaajjgafhacjanaoiihapd"
+
+hangoutsPlacement = withGaps (20,0,0,0) $ smart (1.0, 1.0)
 
 manageScratchPad = scratchpadManageHook (S.RationalRect l t w h)
   where
@@ -70,12 +77,13 @@ myKeys = concat [
           , ("M-S-<Right>", shiftToNext )
           , ("M-S-g",       gotoMenu )
           , ("M-S-b",       bringMenu )
-          , ("M-p",         spawn "dmenu_run" )
-          , ("M-u",         scratchpadSpawnAction myConfig )
+          , ("M-p",         spawn "dmenu_run -l 5 -nb dimgray -nf whitesmoke -sb darkgray -sf white" )
+          , ("M-u",         scratchpadSpawnActionTerminal "gnome-terminal --disable-factory --name scratchpad" )
           , ("M-S-C-j",     moveToGroupDown True)
           , ("M-S-C-k",     moveToGroupUp True)
           , ("M-S-C-h",     moveToNewGroupDown)
           , ("M-S-C-l",     moveToNewGroupUp)
+          , ("M-x c",       placeFocused hangoutsPlacement)  -- place floated chat window
           ],
           [("M-C-" ++ i, windows $ swapWithCurrent i) | i <- myWorkspaces]
          ]
@@ -83,38 +91,41 @@ myKeys = concat [
 
 -- LogHook prettyprinter for dzen
 
-pixmaps = "/data/home/arnar/.xmonad/"
+pixmaps = "/usr/local/google/home/arnarb/.xmonad/"
 light_gray = "#cccccc" -- #c7c8c6"
-dark_gray  = "#434541"  -- very very dark, was "#434541" before
--- font = "xft:Sans:size=9:weight=regular:hinting=true:hintstyle=hintslight:antialias=true:rgba=rgb:lcdfilter=lcdligh"
---font = "Ubuntu Mono-10"
-font = "Droid Sans Mono-10"
+dark_gray  = "#434541"  -- very very dark, was "#434541" before, #303030 to match vim notext
+--font = "xft:Sans:size=9:weight=regular:hinting=true:hintstyle=hintslight:antialias=true:rgba=rgb:lcdfilter=lcdligh"
+font = "Ubuntu Mono-10"
+--font = "Droid Sans Mono-10"
 
-myPP =  defaultPP { ppCurrent  = dzenColor "black" "#999999" . pad
-                  , ppVisible  = dzenColor "black" light_gray . pad
-                  , ppHidden   = dzenColor "#e6e6e6" dark_gray . pad
-                  , ppHiddenNoWindows = dzenColor "#666666" dark_gray . pad
-                  , ppUrgent   = dzenColor "red" "yellow"
-                  , ppWsSep    = ""
-                  , ppSep      = ""
-                  , ppLayout   = dzenColor light_gray dark_gray .
-                                 (\ x -> case x of
-                                           "Tall"                 -> " ^i(" ++ pixmaps ++ "layout-tall.xbm) "
-                                           "Mirror Tall"          -> " ^i(" ++ pixmaps ++ "layout-mtall.xbm) "
-                                           "Full"                 -> " ^i(" ++ pixmaps ++ "layout-full.xbm) "
-                                           "TwoPane"              -> " ^i(" ++ pixmaps ++ "layout-twopane.xbm) "
-                                           "Grid"                 -> " ^i(" ++ pixmaps ++ "layout-grid.xbm) "
-                                           "IM Grid"              -> " ^i(" ++ pixmaps ++ "layout-im.xbm) "
-                                           "IM ReflectX IM Full"  -> " ^i(" ++ pixmaps ++ "layout-gimp.xbm) "
-                                           "Grid by Full"         -> " ^i(" ++ pixmaps ++ "layout-gridbyfull.xbm) "
-                                           _                      -> pad x
-                                 )
-                  , ppTitle    = dzenEscape . ("∷ " ++)
-                  , ppExtras   = map (liftM . liftM $ pad) [capsControl, logCmd "~/bin/tstatus"]
-                  {-, ppOrder    = \x -> case x of -}
-                  {-                       [a,b,c,d,e] -> [a,b,d,e,c]-}
-                  {-                       _ -> ["bzzt"]-}
-                  }
+myPP pipe =  defaultPP { ppOutput = hPutStrLn pipe
+                       , ppCurrent  = dzenColor "black" "#999999" . pad
+                       , ppVisible  = dzenColor "black" light_gray . pad
+                       , ppHidden   = dzenColor "#e6e6e6" dark_gray . pad
+                       , ppHiddenNoWindows = dzenColor "#666666" dark_gray . pad
+                       , ppUrgent   = dzenColor "red" "yellow"
+                       , ppWsSep    = ""
+                       , ppSep      = ""
+                       , ppLayout   = dzenColor light_gray dark_gray . layoutPixmap
+                       , ppTitle    = dzenEscape . (":: " ++)
+                       --, ppExtras   = map (liftM . liftM $ pad) [capsControl, logCmd "~/bin/tstatus"]
+                       {-, ppOrder    = \x -> case x of -}
+                       {-                       [a,b,c,d,e] -> [a,b,d,e,c]-}
+                       {-                       _ -> ["bzzt"]-}
+                       }
+        where
+          layoutPixmap lname = case (lookup lname pixmapMap) of
+                                Just x -> " ^i(" ++ pixmaps ++ "layout-" ++ x ++ ".xbm) "
+                                Nothing -> pad lname
+          pixmapMap = [ ( "Tall"                  , "tall" )
+                      , ( "Mirror Tall"           , "mtall" )
+                      , ( "Full"                  , "full" )
+                      , ( "TwoPane"               , "twopane" )
+                      , ( "Grid"                  , "grid" )
+                      , ( "IM Grid"               , "im" )
+                      , ( "IM ReflectX IM Full"   , "gimp" )
+                      , ( "Grid by Full"          , "gridbyfull" )
+                      ]
 
 capsControl :: X (Maybe String)
 capsControl = return $ Just "E"
@@ -139,13 +150,15 @@ myConfig = desktopConfig
            , startupHook = startupHook desktopConfig >> setWMName "LG3D"
            , normalBorderColor = "#505050"
            , focusedBorderColor = "#660000"
-           , terminal = "urxvt -e 'tmux'"
+           , terminal = "urxvt"
            } `additionalKeysP` myKeys
 
 main = do
-  dzen <- spawnPipe ("dzen2 -dock -x '4' -y '3' -h '15' -w '1100' -ta 'l' "
+  dzen <- spawnPipe ("~/tools/dzen/dzen2 -dock -h 20 -w 1500 -ta l "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
+  --dzen <- openFile "/usr/local/google/home/arnarb/.xmonad/logpipe" ReadWriteMode
+  --hSetBuffering dzen LineBuffering
   xmonad $ myConfig {
-               logHook = myLogHook >> dynamicLogWithPP (myPP { ppOutput = hPutStrLn dzen })
+               logHook = myLogHook >> dynamicLogWithPP (myPP dzen)
              }
