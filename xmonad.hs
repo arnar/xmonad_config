@@ -10,9 +10,9 @@ import XMonad.Layout.Reflect
 import XMonad.Layout.TwoPane
 import qualified XMonad.Layout.Groups as G
 import XMonad.Layout.Groups.Helpers
+import XMonad.Layout.SimpleFloat
 import XMonad.Util.Run
 import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.SetWMName
 import XMonad.Hooks.FadeInactive
 import XMonad.Actions.WindowBringer
 import XMonad.Util.Loggers
@@ -26,6 +26,7 @@ import System.IO
 import Control.Monad
 import qualified XMonad.StackSet as S
 import XMonad.Hooks.Place
+import XMonad.Actions.CopyWindow
 
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
@@ -36,6 +37,7 @@ myLayout = smartBorders tiled
        ||| smartBorders (Grid (16/9))
        ||| im
        ||| gimp
+       ||| simpleFloat
   where
     tiled  = Tall nmaster delta ratio
     nmaster = 1
@@ -54,13 +56,14 @@ myManageHook = (composeAll
     , resource =? "hamster-applet" --> doFloat
     , (className =? "Firefox" <&&> resource =? "Download") --> doFloat
     , (className =? "Firefox" <&&> resource =? "Extension") --> doFloat
+    , className =? "Shutter" --> doFloat
     --, (stringProperty "WM_WINDOW_ROLE" =? "pop-up") --> doFloat   -- e.g. the hangouts extension
     , isHangouts --> placeHook hangoutsPlacement <+> doFloat
     ])  <+> manageScratchPad
   where
     isHangouts = appName =? "crx_nckgahadagoaajjgafhacjanaoiihapd"
 
-hangoutsPlacement = withGaps (20,0,0,0) $ smart (1.0, 1.0)
+hangoutsPlacement = withGaps (20,5,30,0) $ smart (1.0, 1.0)
 
 manageScratchPad = scratchpadManageHook (S.RationalRect l t w h)
   where
@@ -71,23 +74,34 @@ manageScratchPad = scratchpadManageHook (S.RationalRect l t w h)
 
 myKeys = concat [
           [ ("M-x f",       spawn "firefox" ) 
-          , ("M-<Left>",    prevWS )
-          , ("M-<Right>",   nextWS )
-          , ("M-S-<Left>",  shiftToPrev )
-          , ("M-S-<Right>", shiftToNext )
+          , ("M-u",         prevWS )
+          , ("M-d",         nextWS )
+          , ("M-S-u",       shiftToPrev )
+          , ("M-S-d",       shiftToNext )
           , ("M-S-g",       gotoMenu )
           , ("M-S-b",       bringMenu )
           , ("M-p",         spawn "dmenu_run -l 5 -nb dimgray -nf whitesmoke -sb darkgray -sf white" )
-          , ("M-u",         scratchpadSpawnActionTerminal "gnome-terminal --disable-factory --name scratchpad" )
+          --, ("M-u",         scratchpadSpawnActionTerminal "gnome-terminal --disable-factory --name scratchpad" )
           , ("M-S-C-j",     moveToGroupDown True)
           , ("M-S-C-k",     moveToGroupUp True)
           , ("M-S-C-h",     moveToNewGroupDown)
           , ("M-S-C-l",     moveToNewGroupUp)
           , ("M-x c",       placeFocused hangoutsPlacement)  -- place floated chat window
+	  --, ("M-a",         sequence_ $ [windows $ copy i | i <- XMonad.workspaces conf])
+	  --, ("M-S-a",       windows $ kill8)
+	  , ("M1-<KP_Add>", spawn "amixer -c 0 set Master 1+")
+	  , ("M1-<KP_Subtract>", spawn "amixer -c 0 set Master 1-")
           ],
-          [("M-C-" ++ i, windows $ swapWithCurrent i) | i <- myWorkspaces]
+          [("M-C-" ++ i, windows $ swapWithCurrent i) | i <- myWorkspaces],
+	  [ (prefix ++ "M-" ++ ws, action ws)
+            | ws <- myWorkspaces
+	    , (prefix, action) <- [ ("", windows . S.view)
+	    			  , ("S-", windows . S.shift)]
+	  ]
          ]
 
+kill8 ss | Just w <- S.peek ss = (S.insertUp w) $ S.delete w ss
+         | otherwise = ss
 
 -- LogHook prettyprinter for dzen
 
@@ -99,8 +113,8 @@ font = "Ubuntu Mono-10"
 --font = "Droid Sans Mono-10"
 
 myPP pipe =  defaultPP { ppOutput = hPutStrLn pipe
-                       , ppCurrent  = dzenColor "black" "#999999" . pad
-                       , ppVisible  = dzenColor "black" light_gray . pad
+                       , ppCurrent  = dzenColor "white" "#990000" . pad
+                       , ppVisible  = dzenColor "#CCCCCC" "#666666" . pad
                        , ppHidden   = dzenColor "#e6e6e6" dark_gray . pad
                        , ppHiddenNoWindows = dzenColor "#666666" dark_gray . pad
                        , ppUrgent   = dzenColor "red" "yellow"
@@ -147,14 +161,14 @@ myConfig = desktopConfig
            , workspaces = myWorkspaces
            , layoutHook = desktopLayoutModifiers myLayout
            , manageHook = manageHook desktopConfig <+> myManageHook
-           , startupHook = startupHook desktopConfig >> setWMName "LG3D"
+           , startupHook = startupHook desktopConfig
            , normalBorderColor = "#505050"
            , focusedBorderColor = "#660000"
            , terminal = "urxvt"
            } `additionalKeysP` myKeys
 
 main = do
-  dzen <- spawnPipe ("~/tools/dzen/dzen2 -dock -h 20 -w 1500 -ta l "
+  dzen <- spawnPipe ("~/tools/dzen/dzen2 -dock -h 20 -w 1000 -ta l "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
   --dzen <- openFile "/usr/local/google/home/arnarb/.xmonad/logpipe" ReadWriteMode
