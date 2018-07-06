@@ -27,6 +27,7 @@ import Control.Monad
 import qualified XMonad.StackSet as S
 import XMonad.Hooks.Place
 import XMonad.Actions.CopyWindow
+import XMonad.Hooks.SetWMName
 
 myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 
@@ -91,6 +92,7 @@ myKeys = concat [
 	  --, ("M-S-a",       windows $ kill8)
 	  , ("M1-<KP_Add>", spawn "amixer -c 0 set Master 1+")
 	  , ("M1-<KP_Subtract>", spawn "amixer -c 0 set Master 1-")
+	  , ("<XF86PowerOff>", spawn "xsecurelock")
           ],
           [("M-C-" ++ i, windows $ swapWithCurrent i) | i <- myWorkspaces],
 	  [ (prefix ++ "M-" ++ ws, action ws)
@@ -122,7 +124,6 @@ myPP pipe =  defaultPP { ppOutput = hPutStrLn pipe
                        , ppSep      = ""
                        , ppLayout   = dzenColor light_gray dark_gray . layoutPixmap
                        , ppTitle    = dzenEscape . (":: " ++)
-                       --, ppExtras   = map (liftM . liftM $ pad) [capsControl, logCmd "~/bin/tstatus"]
                        {-, ppOrder    = \x -> case x of -}
                        {-                       [a,b,c,d,e] -> [a,b,d,e,c]-}
                        {-                       _ -> ["bzzt"]-}
@@ -141,34 +142,26 @@ myPP pipe =  defaultPP { ppOutput = hPutStrLn pipe
                       , ( "Grid by Full"          , "gridbyfull" )
                       ]
 
-capsControl :: X (Maybe String)
-capsControl = return $ Just "E"
-
-capsControl' = do
-  ws <- gets windowset
-  case S.peek ws of
-    Nothing -> return $ Just ""
-    Just w  -> do cls <- withDisplay $ \d -> fmap (fromMaybe "") $ getStringProperty d w "WM_CLASS"
-                  if "emacs" `isPrefixOf` cls
-                     then spawn "/data/home/arnar/bin/caps_control" >> return (Just "C")
-                     else spawn "/data/home/arnar/bin/caps_escape"  >> return (Just "E")
-
 myLogHook :: X ()
 myLogHook = fadeInactiveLogHook 0xdddddddd
+
+myStartupHook = do
+  startupHook desktopConfig
+  setWMName "LG3D"
 
 myConfig = desktopConfig 
            { modMask = mod4Mask
            , workspaces = myWorkspaces
            , layoutHook = desktopLayoutModifiers myLayout
            , manageHook = manageHook desktopConfig <+> myManageHook
-           , startupHook = startupHook desktopConfig
+           , startupHook = myStartupHook
            , normalBorderColor = "#505050"
            , focusedBorderColor = "#660000"
            , terminal = "urxvt"
            } `additionalKeysP` myKeys
 
 main = do
-  dzen <- spawnPipe ("~/tools/dzen/dzen2 -dock -h 20 -w 1000 -ta l "
+  dzen <- spawnPipe ("~/tools/dzen/dzen2 -dock -xs 1 -h 20 -w 1600 -ta l "
                      ++ "-fg '" ++ light_gray ++ "' -bg '" ++ dark_gray ++ "' "
                      ++ "-fn '" ++ font ++ "'")
   --dzen <- openFile "/usr/local/google/home/arnarb/.xmonad/logpipe" ReadWriteMode
