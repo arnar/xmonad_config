@@ -85,6 +85,7 @@ myKeys = concat [
           , ("M-n",                     toggleGaps)
           , ("M-S-h",                   incGaps)
           , ("M-S-l",                   decGaps)
+          , ("M-x",                     spawn "xterm -e sh")  -- in case urxvt has issues
           ],
           [ (prefix ++ ws, action ws) | ws <- myWorkspaces
                                       , (prefix, action) <- [ ("M-", windows . S.view)
