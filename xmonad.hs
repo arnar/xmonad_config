@@ -110,10 +110,9 @@ polylinePP = def { ppOutput = B.appendFile "/tmp/.xmonad-workspace-log" . fromSt
                  , ppHiddenNoWindows = foreground (nord 3) . pad . omit "NSP"
                  , ppUrgent = overline (nord 11) . pad
                  , ppWsSep = ""
-                 --, ppSep = ":: \xF79F \xf66b \xfcb5 \xe795 \xe7a2 \xf120 \xf268 \xf7ae \xf7c0 \xfc56 \xfa6f \xf57f \xf017 \xf64f "
                  , ppSep = ":: "
-                 , ppLayout = id
-                 , ppTitle = const ""
+                 , ppLayout = layoutIcon
+                 --, ppTitle = const "$$ \xF79F \xf66b \xfcb5 \xe795 \xe7a2 \xf120 \xf268 \xf7ae \xf7c0 \xfc56 \xfa6f \xf57f \xf017 \xf64f"
                  }
              where
                omit nameToOmit x = if x == nameToOmit then "" else x
@@ -124,6 +123,11 @@ polylinePP = def { ppOutput = B.appendFile "/tmp/.xmonad-workspace-log" . fromSt
                highlight = "#990000"
                nord n = [ "#2e3440", "#3b4252", "#434c5e", "#4c566a", "#d8dee9", "#e5e9f0", "#eceff4", "#8fbcbb",
                           "#88c0d0", "#81a1c1", "#5e81ac", "#bf616a", "#d08770", "#ebcb8b", "#a3be8c", "#b48ead" ] !! n
+               layoutIcon "Spacing Tall" = "\xf878 "
+               layoutIcon "Spacing Full" = "\xf096 "
+               layoutIcon "Spacing TwoPane" = "\xf0db "
+               layoutIcon "Spacing Grid" = "\xfc56 "
+               layoutIcon layout = layout
 
 
 myLogHook = do
