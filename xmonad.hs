@@ -6,6 +6,7 @@ import XMonad.Util.EZConfig
 import XMonad.Actions.CycleWS
 import XMonad.Actions.SwapWorkspaces
 import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.FadeInactive
 import XMonad.Layout.GridVariants
 import XMonad.Layout.TwoPane
 import XMonad.Layout.Spacing
@@ -15,7 +16,7 @@ import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.NoBorders
-import XMonad.Util.Scratchpad
+import XMonad.Util.NamedScratchpad
 import qualified XMonad.StackSet as S
 import XMonad.Hooks.Place
 import XMonad.Hooks.SetWMName
@@ -38,21 +39,28 @@ myLayoutHook = spacingRaw True (Border 1 0 1 0) True (Border 0 1 0 1) True
         delta = 3/100
         narrowable = Gaps.gaps' [((Gaps.L,512),False),((Gaps.R,512),False)]
 
-myManageHook = manageScratchPad <+> (composeAll
-    [ resource =? "URxvtFuzzy" --> placeHook fzfCmdPlacement <+> hasBorder False <+> doFloat
-    , (stringProperty "WM_WINDOW_ROLE" =? "GtkFileChooserDialog") --> doRectFloat(S.RationalRect 0.25 0.25 0.5 0.5)
-    , resource =? "gnubby_ssh_prompt" --> doFloat
-    , resource =? "_Org_Capture_" --> placeHook capturePlacement <+> hasBorder False <+> doFloat
-    ])
+scratchpads = [
+        NS "quaketerm" 
+           "urxvtc -name quaketerm" 
+           (resource =? "quaketerm") 
+           (customFloating $ S.RationalRect 0 0 1 0.5),
+        NS "launcher" 
+           "~/bin/fuzzy_win ~/bin/fuzzy_cmd" 
+           (resource =? "URxvtFuzzy") 
+           (placeHook fzfCmdPlacement <+> hasBorder False <+> doFloat),
+       NS "org-capture"
+          "emacsclient -ne '(make-capture-frame)'"
+          (title =? "*Org Capture*")
+          (placeHook capturePlacement <+> hasBorder False <+> doFloat)
+    ]
     where
       fzfCmdPlacement = withGaps (20,0,20,0) $ fixed (0.5,0.6)
       capturePlacement = withGaps (20,0,20,0) $ fixed (0.5,0.4)
-      manageScratchPad = scratchpadManageHook (S.RationalRect l t w h)
-        where
-          h = 0.5
-          w = 1
-          t = 0
-          l = 1 - w
+
+myManageHook = composeAll [
+    namedScratchpadManageHook scratchpads,
+    stringProperty "WM_WINDOW_ROLE" =? "GtkFileChooserDialog" --> doRectFloat(S.RationalRect 0.25 0.25 0.5 0.5)
+  ]
 
 -- Carbon X1 function key row:
 --  XF86AudioMute
@@ -67,10 +75,10 @@ myManageHook = manageScratchPad <+> (composeAll
 --  XF86Bluetooth
 --  XF86Favorites
 myKeys = concat [
-          [ ("M-p",                     spawn "~/bin/fuzzy_win ~/bin/fuzzy_cmd" )
-          , ("M-`",                     scratchpadSpawnActionTerminal "urxvtc" )
+          [ ("M-p",                     scratch "launcher")
+          , ("M-`",                     scratch "quaketerm")
           , ("M-y",                     swapNextScreen)
-          , ("M-c",                     spawn "emacsclient -ne '(make-capture-frame)'")
+          , ("M-c",                     scratch "org-capture")
           , ("<XF86PowerOff>",          screenlock)
           , ("<XF86Favorites>",         screenlock)  -- Star key on thinkpad
           , ("<XF86MonBrightnessDown>", spawn "~/tools/brightlight/brightlight -p -d 5")
@@ -81,6 +89,7 @@ myKeys = concat [
           , ("<XF86AudioMicMute>",      spawn "amixer set Capture toggle")
           , ("<XF86Display>",           spawn "~/.dotfiles/resetscreens.sh")
           , ("C-<Down>",                spawn "~/.dotfiles/resetscreens.sh")
+          , ("M-<Esc>",                 spawn "cinnamon-screensaver-command --lock")
           , ("<Print>",                 spawn "flameshot gui")
           , ("M-n",                     toggleGaps)
           , ("M-S-h",                   incGaps)
@@ -95,6 +104,7 @@ myKeys = concat [
           ]
          ]
         where
+          scratch = namedScratchpadAction scratchpads
           toggleGaps = sendMessage Gaps.ToggleGaps
           incGaps = sequence_ $ map (sendMessage . Gaps.IncGap 64) [Gaps.R, Gaps.L]
           decGaps = sequence_ $ map (sendMessage . Gaps.DecGap 64) [Gaps.R, Gaps.L]
@@ -105,7 +115,8 @@ myKeys = concat [
 
 
 polylinePP = def { ppOutput = B.appendFile "/tmp/.xmonad-workspace-log" . fromString . (++ "\n")
-                 , ppCurrent = overline highlight . background highlight . pad , ppVisible = overline highlight . pad
+                 , ppCurrent = overline highlight . background highlight . pad
+                 , ppVisible = overline highlight . pad
                  , ppHidden = pad . omit "NSP"
                  , ppHiddenNoWindows = foreground (nord 3) . pad . omit "NSP"
                  , ppUrgent = overline (nord 11) . pad
@@ -128,8 +139,7 @@ polylinePP = def { ppOutput = B.appendFile "/tmp/.xmonad-workspace-log" . fromSt
 
 myLogHook = do
   dynamicLogWithPP polylinePP
-  -- For now using compton's 'inactive-fade', but if that stops working we can go back to this:
-  --fadeInactiveLogHook 0xeeeeeeee
+  fadeInactiveLogHook 0xee000000  -- Alternative to compton's 'inactive-fade'
 
 myStartupHook = do
   startupHook desktopConfig
@@ -142,7 +152,7 @@ myConfig = desktopConfig
            , manageHook = manageHook desktopConfig <+> myManageHook
            , handleEventHook = docksEventHook <+> handleEventHook desktopConfig
            , startupHook = myStartupHook
-           , terminal = "urxvtc"
+           , terminal = "urxvtc || urxvt"
            , logHook = myLogHook
            } `additionalKeysP` myKeys
 
