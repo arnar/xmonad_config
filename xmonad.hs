@@ -8,6 +8,7 @@ import XMonad.Actions.SwapWorkspaces
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.FadeInactive
 import XMonad.Layout.GridVariants
+import XMonad.Layout.IndependentScreens
 import XMonad.Layout.TwoPane
 import XMonad.Layout.Spacing
 import qualified XMonad.Layout.Gaps as Gaps
@@ -41,7 +42,7 @@ myLayoutHook = spacingRaw True (Border 1 0 1 0) True (Border 0 1 0 1) True
 
 scratchpads = [
         NS "quaketerm" 
-           "urxvtc -name quaketerm" 
+           "alacritty --class quaketerm" 
            (resource =? "quaketerm") 
            (customFloating $ S.RationalRect 0 0 1 0.5),
         NS "launcher" 
@@ -81,8 +82,8 @@ myKeys = concat [
           , ("M-c",                     scratch "org-capture")
           , ("<XF86PowerOff>",          screenlock)
           , ("<XF86Favorites>",         screenlock)  -- Star key on thinkpad
-          , ("<XF86MonBrightnessDown>", spawn "~/tools/brightlight/brightlight -p -d 5")
-          , ("<XF86MonBrightnessUp>",   spawn "~/tools/brightlight/brightlight -p -i 5")
+          , ("<XF86MonBrightnessDown>", spawn "polybar-msg action '#backlight.dec'")
+          , ("<XF86MonBrightnessUp>",   spawn "polybar-msg action '#backlight.inc'")
           , ("<XF86AudioMute>",         spawn "amixer set Master toggle")
           , ("<XF86AudioLowerVolume>",  spawn "amixer set Master 2%-")
           , ("<XF86AudioRaiseVolume>",  spawn "amixer set Master 2%+")
@@ -94,7 +95,8 @@ myKeys = concat [
           , ("M-n",                     toggleGaps)
           , ("M-S-h",                   incGaps)
           , ("M-S-l",                   decGaps)
-          , ("M-x",                     spawn "xterm -e sh")  -- in case urxvt has issues
+          , ("M-x",                     spawn "xterm -e sh")  -- "safe mode"
+          , ("M-m",                     windows . S.view $ "monitor")
           ],
           [ (prefix ++ ws, action ws) | ws <- myWorkspaces
                                       , (prefix, action) <- [ ("M-", windows . S.view)
@@ -116,8 +118,8 @@ myKeys = concat [
 
 polylinePP = def { ppOutput = B.appendFile "/tmp/.xmonad-workspace-log" . fromString . (++ "\n")
                  , ppCurrent = overline highlight . background highlight . pad
-                 , ppVisible = overline highlight . pad
-                 , ppHidden = pad . omit "NSP"
+                 , ppVisible = overline highlight . pad . omit "monitor"
+                 , ppHidden = pad . omit "NSP" . omit "monitor"
                  , ppHiddenNoWindows = foreground (nord 3) . pad . omit "NSP"
                  , ppUrgent = overline (nord 11) . pad
                  , ppWsSep = ""
@@ -151,12 +153,12 @@ myStartupHook = do
 
 myConfig = desktopConfig 
            { modMask = mod4Mask
-           , workspaces = myWorkspaces
+           , workspaces = "monitor" : myWorkspaces
            , layoutHook = myLayoutHook
            , manageHook = manageHook desktopConfig <+> myManageHook
            , handleEventHook = docksEventHook <+> handleEventHook desktopConfig
            , startupHook = myStartupHook
-           , terminal = "urxvtc || urxvt"
+           , terminal = "alacritty"
            , logHook = myLogHook
            } `additionalKeysP` myKeys
 
