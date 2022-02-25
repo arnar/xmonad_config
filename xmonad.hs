@@ -82,6 +82,7 @@ myKeys = concat [
           , ("M-c",                     scratch "org-capture")
           , ("<XF86PowerOff>",          screenlock)
           , ("<XF86Favorites>",         screenlock)  -- Star key on thinkpad
+          , ("M-<Esc>",                 screenlock)
           , ("<XF86MonBrightnessDown>", spawn "polybar-msg action '#backlight.dec'")
           , ("<XF86MonBrightnessUp>",   spawn "polybar-msg action '#backlight.inc'")
           , ("<XF86AudioMute>",         spawn "amixer set Master toggle")
@@ -90,7 +91,6 @@ myKeys = concat [
           , ("<XF86AudioMicMute>",      spawn "amixer set Capture toggle")
           , ("<XF86Display>",           spawn "~/.dotfiles/resetscreens.sh")
           , ("C-<Down>",                spawn "~/.dotfiles/resetscreens.sh")
-          , ("M-<Esc>",                 spawn "cinnamon-screensaver-command --lock")
           , ("<Print>",                 spawn "flameshot gui")
           , ("M-n",                     toggleGaps)
           , ("M-S-h",                   incGaps)
